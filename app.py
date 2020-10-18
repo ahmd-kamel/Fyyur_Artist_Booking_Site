@@ -25,7 +25,7 @@ app.config.from_object('config')
 
 #... connection to local database called postgres
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Passasdk@localhost:5432/fyyur_db'
-
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 #... using migration
@@ -48,6 +48,15 @@ class Venue(db.Model):
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    #... complete venue model
+    genres = db.Column(db.String(120))
+    web_site = db.Column(db.String(120))
+    seeking_talent = db.Column(db.String)
+    seeking_description = db.Column(db.String)
+    upcoming_shows_count = db.Column(db.Integer, nullable=False)
+    past_shows_count = db.Column(db.Integer, nullable=False)
+    #... relation between show and venue
+    venue_show = db.relationship('Show', backref='venue', lazy=True)
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -62,6 +71,16 @@ class Artist(db.Model):
     genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    #... complete artist model
+    web_site = db.Column(db.String(120))
+    seeking_venue = db.Column(db.String)
+    seeking_description = db.Column(db.String)
+    upcoming_shows_count = db.Column(db.Integer, nullable=False)
+    past_shows_count = db.Column(db.Integer, nullable=False)
+    #... relation between show and artist
+    artist_show = db.relationship('Show', backref='artist', lazy=True)
+
+
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
@@ -69,7 +88,12 @@ class Show(db.Model):
   __tablename__ = 'Show'
 
   id = db.Column(db.Integer, primary_key=True)
-  show_time = db.Column(db.DateTime, nullable=False)
+  start_time = db.Column(db.DateTime, nullable=False)
+  #... Venue foreign key
+  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+  #... Artist foreign key
+  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
+  
 
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
