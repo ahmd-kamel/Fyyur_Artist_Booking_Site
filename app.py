@@ -38,12 +38,12 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 
 class Venue(db.Model):
-    __tablename__ = 'Venue'
+    __tablename__ = 'venue'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
+    name = db.Column(db.String, nullable=False)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(120), nullable=False)
     address = db.Column(db.String(120))
     phone = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
@@ -61,14 +61,14 @@ class Venue(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Artist(db.Model):
-    __tablename__ = 'Artist'
+    __tablename__ = 'artist'
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String)
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
+    name = db.Column(db.String, nullable=False)
+    city = db.Column(db.String(120), nullable=False)
+    state = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120))
-    genres = db.Column(db.String(120))
+    genres = db.Column(db.String(120), nullable=False)
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
     #... complete artist model
@@ -85,18 +85,18 @@ class Artist(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 class Show(db.Model):
-  __tablename__ = 'Show'
+  __tablename__ = 'show'
 
   id = db.Column(db.Integer, primary_key=True)
   start_time = db.Column(db.DateTime, nullable=False)
   #... Venue foreign key
-  venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+  venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=False)
   #... Artist foreign key
-  artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
+  artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), nullable=False)
   
 
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+# TODO Implement Show properties, as a database migration.
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -128,27 +128,30 @@ def index():
 def venues():
   # TODO: replace with real venues data.
   #       num_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
+  
+  #...  not dynamic with events 
+  #...  define an empty lists to store the data
+  city_and_state = []
+  data = []
+
+  #... all venus on the same city and state
+  venue_table = Venue.query.all()
+  #... itrate on all rows in the query
+  for row in venue_table:
+    if city_and_state == row.city + row.state:
+      data[len(data) - 1]["venues"].append({
+        "id": row.id,
+        "name": row.name,
+        "upcoming_shows_count": row.upcoming_shows_count
+      })
+      
+    else:
+      city_and_state = row.city + row.state
+      data.append({"city": row.city, "state": row.state,
+          "venues": [{"id": row.id, "name": row.name,
+          "upcoming_shows_count": row.upcoming_shows_count }]
+          })
+
   return render_template('pages/venues.html', areas=data);
 
 @app.route('/venues/search', methods=['POST'])
