@@ -1,5 +1,5 @@
 from datetime import datetime
-from flask_wtf import Form
+from flask_wtf import FlaskForm as Form
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
 from wtforms.validators import DataRequired, AnyOf, URL, Optional
 
@@ -82,12 +82,14 @@ class VenueForm(Form):
     address = StringField(
         'address', validators=[DataRequired()]
     )
+
     phone = StringField(
         'phone', validators=[DataRequired()]
     )
     image_link = StringField(
         'image_link', validators=[Optional()]
     )
+
     genres = SelectMultipleField(
         # DONE implement enum restriction
         'genres', validators=[DataRequired()],

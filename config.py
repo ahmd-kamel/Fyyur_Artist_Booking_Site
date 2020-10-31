@@ -23,7 +23,17 @@ app.config.from_object('config')
 # DONE: connect to a local postgresql database and use migration (done)
 
 #... connection to local database called postgres
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:Passasdk@localhost:5432/fyyur_db'
+class DatabaseURI():
+
+    # Just change the names of your database and crendtials and all to connect to your local system
+    DATABASE_NAME = "fyyur_db"
+    username = 'postgres'
+    password = 'Passasdk'
+    url = 'localhost:5432'
+    SQLALCHEMY_DATABASE_URI = f'postgresql://{username}:{password}@{url}/{DATABASE_NAME}'
+
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DatabaseURI.SQLALCHEMY_DATABASE_URI
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
