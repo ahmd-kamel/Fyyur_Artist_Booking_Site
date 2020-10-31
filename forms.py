@@ -89,7 +89,6 @@ class VenueForm(Form):
     image_link = StringField(
         'image_link', validators=[Optional()]
     )
-
     genres = SelectMultipleField(
         # DONE implement enum restriction
         'genres', validators=[DataRequired()],
@@ -118,6 +117,53 @@ class VenueForm(Form):
     facebook_link = StringField(
         'facebook_link', validators=[Optional(),URL()]
     )
+    website = StringField(
+        'web_site', validators=[Optional(),URL()]
+    )
+    genres = SelectMultipleField(
+    # DONE implement enum restriction
+    'genres', validators=[DataRequired()],
+    choices=[
+        ('Alternative', 'Alternative'),
+        ('Blues', 'Blues'),
+        ('Classical', 'Classical'),
+        ('Country', 'Country'),
+        ('Electronic', 'Electronic'),
+        ('Folk', 'Folk'),
+        ('Funk', 'Funk'),
+        ('Hip-Hop', 'Hip-Hop'),
+        ('Heavy Metal', 'Heavy Metal'),
+        ('Instrumental', 'Instrumental'),
+        ('Jazz', 'Jazz'),
+        ('Musical Theatre', 'Musical Theatre'),
+        ('Pop', 'Pop'),
+        ('Punk', 'Punk'),
+        ('R&B', 'R&B'),
+        ('Reggae', 'Reggae'),
+        ('Rock n Roll', 'Rock n Roll'),
+        ('Soul', 'Soul'),
+        ('Other', 'Other')]
+    )
+
+    seeking_talent = SelectField(
+    'seeking_talent', validators=[DataRequired()],
+    choices=[
+        ('Yes', 'Yes'),
+        ('No', 'No')
+    ]
+    )
+
+    seeking_description = StringField(
+        'seeking_description', validators=[Optional()]
+    )
+    
+    image_link = StringField(
+        'image_link', validators=[Optional()]
+    )
+
+
+
+
 
 class ArtistForm(Form):
     name = StringField(
@@ -200,7 +246,7 @@ class ArtistForm(Form):
         'seeking_description', validators=[Optional()]
     )
     image_link = StringField(
-        'image_link'
+        'image_link', validators=[Optional()]
     )
     genres = SelectMultipleField(
         # DONE implement enum restriction

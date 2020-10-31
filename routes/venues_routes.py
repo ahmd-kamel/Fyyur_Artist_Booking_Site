@@ -12,7 +12,8 @@ from flask import (
     url_for,
 )
 from forms import VenueForm
-from model import Venue
+from model import Venue, Show, Artist
+from filters import format_datetime
 
 
 #  Venues
@@ -71,41 +72,125 @@ def search_venues():
   }
   return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
+
+
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id (2 bugs)
+  # DONE: replace with real venue data from the venues table, using venue_id (2 bugs)
 
   venue = Venue.query.get(venue_id)
-  data={
-    "id": venue.id,
+  if venue:
+    data = venue.venue_to_dictionary()
+    data={
+      "id": venue.id,
+      "name": venue.name,
+      "genres": [venue.genres],
+      "address": venue.address,
+      "city": venue.city,
+      "state": venue.state,
+      "phone": venue.phone,
+      "website": venue.web_site,
+      "facebook_link": venue.facebook_link,
+      "seeking_talent": True,
+      "seeking_description": venue.seeking_description,
+      "image_link": venue.image_link,
+    }
+
+    current_time = datetime.now().strftime('%Y-%m-%d')
+
+    new_shows_query = Show.query.options(db.joinedload('artist')).filter(Show.venue_id == venue_id).filter(Show.start_time > current_time).all()
+    new_show = list(map(Show.artist_details, new_shows_query))
+    data["upcoming_shows"] = new_show
+    data["upcoming_shows_count"] = len(new_show)
+    past_shows_query = Show.query.options(db.joinedload('artist')).filter(Show.venue_id == venue_id).filter(Show.start_time <= current_time).all()
+    past_shows = list(map(Show.artist_details, past_shows_query))
+    data["past_shows"] = past_shows
+    data["past_shows_count"] = len(past_shows)
+
+    return render_template('pages/show_venue.html', venue=data)
+  else:
+    return render_template('errors/404.html')
+    
+
+
+@app.route('/venues/<int:venue_id>/edit', methods=['GET'])
+def edit_venue(venue_id):
+  venue = Venue.query.get(venue_id)
+  form = VenueForm(obj=venue)
+  venue={
+    "id": venue_id,
     "name": venue.name,
     "genres": [venue.genres],
     "address": venue.address,
     "city": venue.city,
-    "state": venue.state,
+    "state": venue.city,
     "phone": venue.phone,
     "website": venue.web_site,
     "facebook_link": venue.facebook_link,
-    # here is boolean bug
-    "seeking_talent": True,
+    "seeking_talent": venue.seeking_talent,
     "seeking_description": venue.seeking_description,
-    "image_link": venue.image_link,
-    # here there is add bug
-    "past_shows": [{
-      "artist_id": 4,
-      "artist_name": "Guns N Petals",
-      "artist_image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-      "start_time": "2019-05-21T21:30:00.000Z"
-    }],
-    # here there is add bug
-    "upcoming_shows": [],
-    "past_shows_count": venue.past_shows_count,
-    "upcoming_shows_count": venue.upcoming_shows_count,
-
+    "image_link": venue.image_link
   }
+  # DONE: populate form with values from venue with ID <venue_id>
+  return render_template('forms/edit_venue.html', form=form, venue=venue)
 
-  return render_template('pages/show_venue.html', venue=data)
+@app.route('/venues/<int:venue_id>/edit', methods=['POST'])
+def edit_venue_submission(venue_id):
+  # LASTXX: take values from the form submitted, and update existing
+  # venue record with ID <venue_id> using the new attributes
+  form = VenueForm()
+  name = form.name.data
+  city = form.city.data
+  state = form.state.data
+  address = form.address.data
+  phone = form.phone.data
+  genres = form.genres.data
+  facebook_link = form.facebook_link.data
+  image_link = form.image_link.data
+  website = form.website.data
+  seeking_talent = True if form.seeking_talent.data == 'Yes' else False
+  seeking_description = form.seeking_description.data 
+
+  if not form.validate():
+    flash( form.errors )
+    return redirect(url_for('edit_venue_submission', venue_id=venue_id))
+
+  else:
+    error_in_update = False
+    try:
+      venue = Venue.query.get(venue_id)
+      venue.name = name
+      venue.city = city
+      venue.state = state
+      venue.address = address
+      venue.phone = phone
+
+      venue.seeking_talent = seeking_talent
+      venue.seeking_description = seeking_description
+      venue.image_link = image_link
+      venue.website = website
+      venue.facebook_link = facebook_link
+      venue.genres = genres
+      db.session.commit()
+    except:
+      error_in_update = True
+      print(f'Exception "{e}" in edit_venue_submission()')
+      db.session.rollback()  
+    finally:
+      db.session.close()
+
+    if not error_in_update:
+      # on successful db update, flash success
+      flash('Venue ' + request.form['name'] + ' was successfully updated!')
+      return redirect(url_for('show_venue', venue_id=venue_id))
+
+    else:
+      flash('An error occurred. Venue ' + name + ' could not be updated.')
+      print("Error in edit_venue_submission()")
+      return render_template('errors/500.html')
+  
+
 
 #  Create Venue
 #  ----------------------------------------------------------------

@@ -12,7 +12,7 @@ from flask import (
     url_for,
 )
 from forms import ArtistForm
-from model import Artist
+from model import Artist, Show, Venue
 
 
 #  Artists
@@ -54,35 +54,39 @@ def search_artists():
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   # shows the venue page with the given venue_id
-  # TODO: replace with real venue data from the venues table, using venue_id
+  # DONE: replace with real venue data from the venues table, using venue_id
 
   artist = Artist.query.get(artist_id)
-  data={
-    "id": artist_id,
-    "name": artist.name,
-    "genres": [artist.genres],
-    "city": artist.city,
-    "state": artist.state,
-    "phone": artist.phone,
-    "website": artist.web_site,
-    "facebook_link": artist.facebook_link,
-    "seeking_venue": artist.seeking_venue,
-    "seeking_description": artist.seeking_description,
-    "image_link": artist.image_link,
-    # buggy
-    "past_shows": [{
-      "venue_id": 1,
-      "venue_name": "The Musical Hop",
-      "venue_image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-      "start_time": "2019-05-21T21:30:00.000Z"
-    }],
-    #buggy
-    "upcoming_shows": [],
-    "past_shows_count": artist.past_shows_count,
-    "upcoming_shows_count": artist.past_shows_count,
-  }
+  if artist:
+    data = artist.artist_to_dictionary()
+    data={
+      "id": artist.id,
+      "name": artist.name,
+      "genres": [artist.genres],
+      "city": artist.city,
+      "state": artist.state,
+      "phone": artist.phone,
+      "website": artist.web_site,
+      "facebook_link": artist.facebook_link,
+      "seeking_venue": artist.seeking_venue,
+      "seeking_description": artist.seeking_description,
+      "image_link": artist.image_link,
+    }
 
-  return render_template('pages/show_artist.html', artist=data)
+    current_time = datetime.now().strftime('%Y-%m-%d')
+    new_shows_query = Show.query.options(db.joinedload('artist')).filter(Show.artist_id == artist_id).filter(Show.start_time >= current_time).all()
+    new_show = list(map(Show.venue_details, new_shows_query))
+    data["upcoming_shows"] = new_show
+    data["upcoming_shows_count"] = len(new_show)
+    past_shows_query = Show.query.options(db.joinedload('artist')).filter(Show.artist_id == artist_id).filter(Show.start_time <= current_time).all()
+    past_shows = list(map(Show.venue_details, past_shows_query))
+    data["past_shows"] = past_shows
+    data["past_shows_count"] = len(past_shows)
+
+    return render_template('pages/show_artist.html', artist=data)
+  else:
+    return render_template('errors/404.html')
+
 
 #  Update
 #  ----------------------------------------------------------------
@@ -114,33 +118,8 @@ def edit_artist_submission(artist_id):
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 
-@app.route('/venues/<int:venue_id>/edit', methods=['GET'])
-def edit_venue(venue_id):
-  venue = Venue.query.get(venue_id)
-  form = VenueForm(obj=venue)
-  venue={
-    "id": venue_id,
-    "name": venue.name,
-    "genres": [venue.genres],
-    "address": venue.address,
-    "city": venue.city,
-    "state": venue.city,
-    "phone": venue.number,
-    "website": venue.web_site,
-    "facebook_link": venue.facebook_link,
-    "seeking_talent": venue.seeking_talent,
-    "seeking_description": venue.seeking_description,
-    "image_link": venue.image_link
-  }
-  # DONE: populate form with values from venue with ID <venue_id>
-  return render_template('forms/edit_venue.html', form=form, venue=venue)
 
-@app.route('/venues/<int:venue_id>/edit', methods=['POST'])
-def edit_venue_submission(venue_id):
-  # TODO: take values from the form submitted, and update existing
-  # venue record with ID <venue_id> using the new attributes
-  
-  return redirect(url_for('show_venue', venue_id=venue_id))
+
 
 #  Create Artist
 #  ----------------------------------------------------------------
