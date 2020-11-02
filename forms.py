@@ -117,7 +117,7 @@ class VenueForm(Form):
     facebook_link = StringField(
         'facebook_link', validators=[Optional(),URL()]
     )
-    website = StringField(
+    web_site = StringField(
         'web_site', validators=[Optional(),URL()]
     )
     genres = SelectMultipleField(

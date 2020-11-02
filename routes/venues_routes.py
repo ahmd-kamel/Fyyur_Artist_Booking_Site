@@ -50,25 +50,31 @@ def venues():
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  # TODO: implement search on artists with partial string search. Ensure it is case-insensitive.(one Bug)
+  # DONE: implement search on artists with partial string search. Ensure it is case-insensitive.(one Bug)
   # seach for Hop should return "The Musical Hop".
   # search for "Music" should return "The Musical Hop" and "Park Square Live Music & Coffee"
   
   # ilike operator instead of like operator to match case insensitive.
   search_term = request.form.get("search_term", "")
   venues = Venue.query.filter(Venue.name.ilike(f"%{search_term}%")).all()
-  upcoming_shows = 0
+  now = datetime.now()
+  venue_list = []
+  for venue in venues:
+      venue_shows = Show.query.filter_by(venue_id=venue.id).all()
+      num_upcoming = 0
+      for show in venue_shows:
+          if show.start_time > now:
+              num_upcoming += 1
+
+      venue_list.append({
+        "id": venue.id,
+        "name": venue.name,
+        "num_upcoming_shows": num_upcoming
+      })        
 
   response={
     "count": len(venues),
-    "data": [{
-      "id": venue.id,
-      "name": venue.name,
-      #here is a bug
-      "num_upcoming_shows": 0,
-    }
-    for venue in venues
-    ]
+    "data": venue_list
   }
   return render_template('pages/search_venues.html', results=response, search_term=search_term)
 
@@ -148,7 +154,7 @@ def edit_venue_submission(venue_id):
   genres = form.genres.data
   facebook_link = form.facebook_link.data
   image_link = form.image_link.data
-  website = form.website.data
+  web_site = form.web_site.data
   seeking_talent = True if form.seeking_talent.data == 'Yes' else False
   seeking_description = form.seeking_description.data 
 
@@ -165,13 +171,15 @@ def edit_venue_submission(venue_id):
       venue.state = state
       venue.address = address
       venue.phone = phone
-
       venue.seeking_talent = seeking_talent
       venue.seeking_description = seeking_description
       venue.image_link = image_link
-      venue.website = website
+      venue.web_site = web_site
       venue.facebook_link = facebook_link
-      venue.genres = genres
+      venue.genres = []
+      for genre in genres:
+        venue.genres.append(genre)
+        
       db.session.commit()
     except:
       error_in_update = True
