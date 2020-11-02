@@ -123,23 +123,28 @@ def show_venue(venue_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   venue = Venue.query.get(venue_id)
-  form = VenueForm(obj=venue)
-  venue={
-    "id": venue_id,
-    "name": venue.name,
-    "genres": [venue.genres],
-    "address": venue.address,
-    "city": venue.city,
-    "state": venue.city,
-    "phone": venue.phone,
-    "website": venue.web_site,
-    "facebook_link": venue.facebook_link,
-    "seeking_talent": venue.seeking_talent,
-    "seeking_description": venue.seeking_description,
-    "image_link": venue.image_link
-  }
-  # DONE: populate form with values from venue with ID <venue_id>
-  return render_template('forms/edit_venue.html', form=form, venue=venue)
+  if venue:
+    form = VenueForm(obj=venue)
+    venue={
+      "id": venue_id,
+      "name": venue.name,
+      "genres": [venue.genres],
+      "address": venue.address,
+      "city": venue.city,
+      "state": venue.city,
+      "phone": venue.phone,
+      "website": venue.web_site,
+      "facebook_link": venue.facebook_link,
+      "seeking_talent": venue.seeking_talent,
+      "seeking_description": venue.seeking_description,
+      "image_link": venue.image_link
+    }
+    # DONE: populate form with values from venue with ID <venue_id>
+    return render_template('forms/edit_venue.html', form=form, venue=venue)
+
+  else:
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be edited.')
+    return redirect(url_for('index'))      
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
@@ -181,9 +186,9 @@ def edit_venue_submission(venue_id):
         venue.genres.append(genre)
         
       db.session.commit()
-    except:
+    except Exception:
       error_in_update = True
-      print(f'Exception "{e}" in edit_venue_submission()')
+      print(f'Exception "{Exception}" in edit_venue_submission()')
       db.session.rollback()  
     finally:
       db.session.close()
@@ -210,12 +215,42 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
+  # DONE: insert form data as a new Venue record in the db, instead
+  # DONE: modify data to be the data object returned from db insertion
+  form = VenueForm()
+  error = False
+  name = form.name.data
+  city = form.city.data
+  state = form.state.data
+  address = form.address.data
+  phone = form.phone.data
+  genres = form.genres.data
+  web_site = form.web_site.data
+  facebook_link = form.facebook_link.data
+  image_link = form.image_link.data
+  seeking_talent = True if form.seeking_talent.data == 'Yes' else False
+  seeking_description = form.seeking_description.data
 
+  try:
+    venue = Venue(name=name, city=city, state=state, address=address,
+    phone=phone, image_link=image_link, genres=genres, facebook_link=facebook_link,
+    website=website, seeking_talent=seeking_talent, seeking_description=seeking_description)
+    db.session.add(venue)
+    db.session.commit()
+  except:
+    db.session.rollback()
+    print(sys.exc_info())
+    error = True
+  finally:
+    db.session.close()  
+
+  if not error:
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+  else:
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
   # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
+
+  # DONE: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
   return render_template('pages/home.html')

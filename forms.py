@@ -232,8 +232,11 @@ class ArtistForm(Form):
         # DONE implement validation logic for state
         'phone', validators=[DataRequired()]
     )
-    website = StringField(
-        'website', validators=[Optional(), URL()]
+    address = StringField(
+        'address', validators=[Optional()]
+    )
+    web_site = StringField(
+        'web_site', validators=[Optional(), URL()]
     )
     seeking_venue = SelectField(
         'seeking_venue', validators=[DataRequired()],
