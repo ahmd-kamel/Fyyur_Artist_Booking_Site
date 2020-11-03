@@ -219,6 +219,7 @@ def create_venue_submission():
   # DONE: modify data to be the data object returned from db insertion
   form = VenueForm()
   error = False
+
   name = form.name.data
   city = form.city.data
   state = form.state.data
@@ -234,7 +235,7 @@ def create_venue_submission():
   try:
     venue = Venue(name=name, city=city, state=state, address=address,
     phone=phone, image_link=image_link, genres=genres, facebook_link=facebook_link,
-    website=website, seeking_talent=seeking_talent, seeking_description=seeking_description)
+    web_site=web_site, seeking_talent=seeking_talent, seeking_description=seeking_description)
     db.session.add(venue)
     db.session.commit()
   except:
@@ -244,12 +245,10 @@ def create_venue_submission():
   finally:
     db.session.close()  
 
-  if not error:
+  if error:
     flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
   else:
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # on successful db insert, flash success
-
   # DONE: on unsuccessful db insert, flash an error instead.
   # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
   # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
@@ -259,7 +258,24 @@ def create_venue_submission():
 def delete_venue(venue_id):
   # TODO: Complete this endpoint for taking a venue_id, and using
   # SQLAlchemy ORM to delete a record. Handle cases where the session commit could fail.
+  
+  error = False
+  try:
+    venue = Venue.query.get(venue_id)
+    db.session.delete(venue)
+    db.session.commit()
+  except:
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
+  finally:
+    db.session.close()
+
+  if error:
+    flash('An error occurred. Venue ' + f'id = {venue_id}' + ' could not be deleted.')
+  else:
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
 
   # BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
-  return None
+  return render_template('pages/home.html')

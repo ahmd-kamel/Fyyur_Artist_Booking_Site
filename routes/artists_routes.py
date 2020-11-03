@@ -108,7 +108,7 @@ def edit_artist(artist_id):
       "seeking_description": artist.seeking_description,
       "image_link": artist.image_link
     }
-      # DONE: populate form with fields from artist with ID <artist_id>
+    # DONE: populate form with fields from artist with ID <artist_id>
     return render_template('forms/edit_artist.html', form=form, artist=artist)
   else:
     flash('An error occurred. Artist ' + request.form['name'] + ' could not be edited.')
@@ -124,7 +124,6 @@ def edit_artist_submission(artist_id):
   name = form.name.data
   city = form.city.data
   state = form.state.data
-  address = form.address.data
   phone = form.phone.data
   genres = form.genres.data
   facebook_link = form.facebook_link.data
@@ -144,7 +143,6 @@ def edit_artist_submission(artist_id):
       artist.name = name
       artist.city = city
       artist.state = state
-      artist.address = address
       artist.phone = phone
       artist.facebook_link = facebook_link
       artist.image_link = image_link
@@ -153,7 +151,7 @@ def edit_artist_submission(artist_id):
       artist.seeking_description = seeking_description
       artist.genres = []
       for genre in genres:
-        venue.genres.append(genre)
+        artist.genres.append(genre)
         
       db.session.commit()
     except Exception:
@@ -207,7 +205,8 @@ def create_artist_submission():
   try:
     artist = Artist(name=name, city=city, state=state,
     phone=phone, image_link=image_link, genres=genres, facebook_link=facebook_link,
-    web_site=web_site, seeking_venue=seeking_venue, seeking_description=seeking_description)
+    web_site=web_site, seeking_venue=seeking_venue,
+     seeking_description=seeking_description)
     db.session.add(artist)
     db.session.commit()
   except:

@@ -6,7 +6,7 @@
       <h3 class="form-heading">List a new artist</h3>
       <div class="form-group">
         <label for="name">Name</label>
-        {{ form.name(class_ = 'form-control', autofocus = true) }}
+        {{ form.name(class_ = 'form-control',placeholder='Name' , autofocus = true) }}
       </div>
       <div class="form-group">
           <label>City & State</label>
@@ -47,8 +47,8 @@
           {{ form.image_link(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
         </div> 
         <div class="form-group">
-          <label for="website">Website</label>
-          {{ form.website(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
+          <label for="web_site">Website</label>
+          {{ form.web_site(class_ = 'form-control', placeholder='http://', id=form.state, autofocus = true) }}
         </div> 
                
                               
