@@ -90,7 +90,7 @@ Highlight folders:
 * Models in `app.py` -- (Missing functionality.) Defines the data models that set up the database tables.
 * `config.py` -- (Missing functionality.) Stores configuration variables and instructions, separate from the main application code. This is where you will need to connect to the database.
 
-
+<!--
 Instructions
 -----
 
@@ -134,7 +134,7 @@ Looking to go above and beyond? This is the right section for you! Here are some
 * Implement Search Artists by City and State, and Search Venues by City and State. Searching by "San Francisco, CA" should return all artists or venues in San Francisco, CA.
 
 Best of luck in your final project! Fyyur depends on you!
-
+-->
 
 ## Development Setup
 1. **Download the project starter code locally**
